@@ -16,7 +16,9 @@ import unittest
 from iiif2 import IIIF
 from iiif2.web import Parse
 
+
 class TestIIIF(unittest.TestCase):
 
     def test_placeholder(self):
-        pass
+        IIIF()
+        Parse()
