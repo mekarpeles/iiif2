@@ -23,7 +23,6 @@ class Parse(object):
         """
         if region == 'full':
             return {'full': region}
-        
         percent = region.startswith('pct:')
         xywh = region.lstrip('pct:').split(',')
         dimensions = dict(zip(list('xywh'), xywh))
@@ -31,7 +30,7 @@ class Parse(object):
         return dimensions
 
     @staticmethod
-    def rotation(rotation):    
+    def rotation(rotation):
         return {
             'flip': rotation.startswith('!'),
             'degrees': rotation.lstrip('!')
@@ -39,10 +38,10 @@ class Parse(object):
 
     @staticmethod
     def size(dimensions):
-        if region == 'full':
-            return {'full': region}
+        if dimensions == 'full':
+            return {'full': dimensions}
 
-        if region.startswith('pct:'):
-            return {'percent': int(region.lstrip('pct:')[1])}
+        if dimensions.startswith('pct:'):
+            return {'percent': int(dimensions.lstrip('pct:')[1])}
 
         return dict(zip(list('wh'), dimensions.split(',')))
