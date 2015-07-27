@@ -16,4 +16,4 @@ __author__ = [
     'Mek <michael.karpeles@gmail.com>'
     ]
 
-from iiif import IIIF  # NOQA
+from .iiif import IIIF  # NOQA
