@@ -49,23 +49,6 @@ manually specified as a string:
     # if we want, we can save tile (e.g. for caching)
     tile.save('cache/%s' % web.urihash(url))
 
-In many cases, a hard-coded string path will be insufficient for
-describing how a iiif uri maps (resolves) to a file on disk. A
-mechanism is provided which allows a `resolver` function to be passed
-in place of the path parameter to allow flexible paths which better
-describe your architecture. The `IIIF.render` method is smart enough to know whether the 
-
-Use a custom resolver function in place of path:
-
-.. code:: python
-
-    from iiif2 import IIIF, web
-
-    url = 'https://stacks.stanford.edu/image/iiif/'
-          'ff139pd0160%252FK90113-43/full/full/0/default.jpg'
-
-    resolver = lambda identifier, *args, **kwargs: 'images/%s.jpg' % identifier
-    tile = IIIF.render(resolver, *web.Parse(url))
 
 Example Web Service
 -------------------
