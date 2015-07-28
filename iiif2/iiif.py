@@ -11,21 +11,92 @@
     :license: see LICENSE for more details.
 """
 
+from PIL import Image, ImageFilter
+from shutil import copyfileobj
+from io import BytesIO
 from . import exc
+
+
+VALID_COLOR_MODES = {
+    'color': 'RGB',
+    'gray': 'L',
+    'bitonal': '1',
+    'default': None
+    }
+
+VALID_FILE_FMTS = {
+    'jpg': {'im': 'JPEG', 'mime': 'image/jpeg'},
+    'tif': {'im': 'TIFF', 'mime': 'image/tiff'},
+    'png': {'im': 'PNG', 'mime': 'image/png'},
+    'gif': {'im': 'GIF', 'mime': 'image/gif'},
+    'jp2': {'im': 'JPEG 2000', 'mime': 'image/jp2'},
+    'pdf': {'im': 'PDF', 'mime': 'application/pdf'},
+    'swebp': {'im': 'WEBP', 'mime': 'image/webp'}
+    }
 
 
 class IIIF(object):
 
-    VALID_COLORS = ['color', 'gray', 'bitonal', 'default']
-    VALID_EXTS = ['jpg', 'tif', 'png', 'gif', 'jp2', 'pdf']
+    @classmethod
+    def render(cls, path, identifier, region, size, rotation, quality, fmt):
+        """Executes complete IIIF Image 2.0 processing pipeline. Takes
+        a **kwargs dict or keyword for each component. Returns an
+        in-memory Tile file obj (StirngIO) in the desired fmt.
+
+        params:1
+            path - the resolved path of image file on disk
+            identifier - iiif resource identifier
+            region - a dictionary of kwargs to be passed to cls.crop
+            size - a dictionary of kwargs to be passed to cls.scale
+
+        usage:
+            >>> IIIF.render(
+            ...    identifier="abcd1234", region={"full": True},
+            ...    size={"full": True}, rotation={"flip": False, "degrees": 0},
+            ...    quality="default", fmt="jpg")
+        """
+        with Image.open(path) as im:
+            return cls.format(
+                cls.colorize(
+                    cls.rotate(
+                        cls.scale(
+                            cls.crop(im, region),
+                            **size),
+                        **rotation),
+                    **quality),
+                **fmt)
+
+    @staticmethod
+    def maximize(topleft, topright, lowleft, lowright, w, h):
+        """Maximizes the dimensions of the four coordinates
+        of a box, given a max w and h, or returns False if box values are
+        impossible.
+        """
+        if lowleft < topleft or lowright < topright:
+            raise exc.RegionArgumentError("Invalid region coordinates")
+
+        topleft = 0 if topleft < 0 else w if topleft > w else topleft
+        lowleft = 0 if lowleft < 0 else w if lowleft > w else lowleft
+        topright = 0 if topright < 0 else h if topright > h else topright
+        lowright = 0 if lowright < 0 else h if lowright > h else lowright
+        return (topleft, topright, lowleft, lowright)
 
     @classmethod
-    def slice(cls, im, full=False, x=None, y=None, w=None, h=None,
-              percent=False):
-        if not any(x, y, w, h, full):
+    def crop(cls, im, full=False, x=None, y=None, w=None, h=None,
+             percent=False):
+        if full:
+            return im
+        if not any([x, y, w, h]):
             raise exc.RegionArgumentError(
                 "x, y, w, h, or full must be specified"
                 )
+        iw, ih = im.size
+        box = (int(round(x/100 * iw)),
+               int(round(y/100 * ih)),
+               int(round(x/100 * ih)) + int(round(w/100 * iw)),
+               int(round(y/100 * ih)) + int(round(h/100 * ih))
+               ) if percent else (x, y, w, h)
+        return im.crop(*cls.maximize(*box, w=iw, h=ih))
 
     @staticmethod
     def scale(im, full=False, w=None, h=None, percent=None):
@@ -43,22 +114,100 @@ class IIIF(object):
                       returned image is the same as that of the
                       extracted region.
         """
-        if not any(full, w, h, percent):
+        if full:
+            return im
+        if not any([w, h, percent]):
             raise exc.SizeArgumentError(
                 "full, w and or h, or percent must be specified"
                 )
 
+        iw, ih = im.size
+        if w and h:
+            width, height = w, h
+
+        elif w and not h:
+            # scale height to width, preserving aspect ratio
+            width, height = w, int(round(ih * float(w / float(iw))))
+
+        elif h and not w:
+            # scale to height, preserving aspect ratio
+            width, height = int(round(float(iw) * float(h / float(ih)))), h
+
+        elif percent:
+            width = int(round(iw * percent / 100)),
+            height = int(round(ih * percent / 100))
+
+        return im.resize((width, height), Image.BICUBIC)
+
     @classmethod
     def rotate(cls, im, degrees, flip=False):
-        if type(degrees) is not int or degrees < 0 or degrees > 360:
-            raise exc.RotationArgumentError("Invalid dimensions")
+        """First performs a vertical flip of the image (if specified)
+        and then rotates the image the specified number of degrees.
+        """
+        if type(degrees) is not int:
+            raise exc.RotationArgumentError("Degrees must be %s, not %s"
+                                            % (type(int), type(degrees)))
+        if degrees < 0 or degrees > 360:
+            raise exc.RotationArgumentError("Invalid degrees: %s" % degrees)
+        if flip:
+            im = im.transpose(Image.FLIP_LEFT_RIGHT)
+        if degrees:
+            im = im.rotate(degrees, resample=Image.BICUBIC, expand=1)
+        return im
 
     @classmethod
-    def colorize(cls, im, color="default"):
-        if color not in cls.VALID_COLORS:
+    def colorize(cls, im, mode="default"):
+        """Colorizes the image using the appropriate mode"""
+        if mode not in VALID_COLOR_MODES:
             raise exc.QualityArgumentError("Invalid color scale quality")
 
+        # If color has a defined conversion type
+        if VALID_COLOR_MODES[mode]:
+            im = im.convert(VALID_COLOR_MODES[mode])
+
+        # Unsharp Mask to increase local contrast in the image
+        im = im.filter(
+            ImageFilter.UnsharpMask(radius=1.2, percent=80, threshold=3)
+            )
+        return im
+
     @classmethod
-    def format(cls, im, ext="jpg"):
-        if ext not in cls.VALID_EXTS:
-            raise exc.FormatArgumentError("Invalid file format.")
+    def format(cls, im, fmt="jpg"):
+        """Returns an in-memory Tile file obj in a specific format"""
+        ext = fmt.lower()
+        if ext not in VALID_FILE_FMTS:
+            raise exc.FormatArgumentError(
+                "Invalid Tile file format. Valid options are: %s" %
+                VALID_FILE_FMTS.keys())
+        tile = Tile(ext=ext, mime=VALID_FILE_FMTS[ext]['mime'])
+        im.save(tile, VALID_FILE_FMTS[ext]['im'])
+        return tile
+
+
+class Tile(BytesIO):
+
+    def __init__(self, ext=None, mime='image/jpeg'):
+        self.ext = ext
+        self.mime = mime
+        BytesIO.__init__(self)
+
+    def save(self, path, ext=False):
+        """Can be used by caching to save this in-memory Tile file
+        (StringIO buffer) to disk
+        """
+        filename = '%s.%s' % (path, self.ext) if ext else path
+        with open(filename, 'w') as f:
+            copyfileobj(self, f)
+
+    def contents(self):
+        return self.getvalue()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is not None:
+            print(exc_type, exc_value, traceback)
+            self.close()
+            return False
+        return self
+
+    def __enter__(self):
+        return self

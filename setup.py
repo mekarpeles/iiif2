@@ -11,9 +11,9 @@
     :license: see LICENSE for more details.
 """
 
-import codecs
 import os
 import re
+import codecs
 from setuptools import setup
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -41,15 +41,30 @@ setup(
     description='An implementation of the IIIF Image API 2.0 Specification ',
     long_description=read('README.rst'),
     classifiers=[
-        ],
+        "Development Status :: 3 - Alpha",
+        "Environment :: Web Environment"
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Topic :: Internet :: WWW/HTTP",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
     author='mek',
     author_email='michael.karpeles@gmail.com',
-    url='',
+    url='iiif.io',
     packages=[
         'iiif2'
         ],
     platforms='any',
     license='LICENSE',
     install_requires=[
-        ]
-)
+        'Pillow >= 2.9.0'
+        ],
+    extras_require={
+        'examples': ['Flask >= 0.10.1']
+        },
+    include_package_data=True
+    )

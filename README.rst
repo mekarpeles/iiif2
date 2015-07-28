@@ -5,3 +5,88 @@ iiif2
     :target: https://travis-ci.org/mekarpeles/iiif2
 
 An implementation of the IIIF Image API 2.0 Specification 
+
+Installation
+------------
+
+.. code:: bash
+
+    $ pip3 install iiif2
+
+Usage
+-----
+
+The iiif2 library includes an image processing component called IIIF,
+responsible for implementing the iiif image processing pipeline, and a
+Parse utility capable of extracting iiif parameters and their data
+from uris.
+
+.. code:: python
+
+    from iiif2 import IIIF
+    from iiif2.web import Parse
+
+You can combine the IIIF and Parse objects to create iiif 2.0 image
+tiles using only:
+
+- a iiif image 2.0 uri and
+- a resolved image filepath
+
+An image path may be provided in one of two ways. First, it can be
+manually specified as a string:
+
+.. code:: python
+
+    from iiif2 import IIIF, web
+
+    url = 'https://stacks.stanford.edu/image/iiif/'
+          'ff139pd0160%252FK90113-43/full/full/0/default.jpg'
+
+    # a web server can return a rendered tile directly
+    # without ever saving tile to disk. Works on read-only fs:
+    tile = IIIF.render('images/file.jpg', *web.Parse(url)) 
+
+    # if we want, we can save tile (e.g. for caching)
+    tile.save('cache/%s' % web.urihash(url))
+
+In many cases, a hard-coded string path will be insufficient for
+describing how a iiif uri maps (resolves) to a file on disk. A
+mechanism is provided which allows a `resolver` function to be passed
+in place of the path parameter to allow flexible paths which better
+describe your architecture. The `IIIF.render` method is smart enough to know whether the 
+
+Use a custom resolver function in place of path:
+
+.. code:: python
+
+    from iiif2 import IIIF, web
+
+    url = 'https://stacks.stanford.edu/image/iiif/'
+          'ff139pd0160%252FK90113-43/full/full/0/default.jpg'
+
+    resolver = lambda identifier, *args, **kwargs: 'images/%s.jpg' % identifier
+    tile = IIIF.render(resolver, *web.Parse(url))
+
+Example Web Service
+-------------------
+
+An entire IIIF Web Service written in Flask in < 15 lines of code:
+
+.. code:: python
+
+    from flask import Flask, request, jsonify
+    from iiif2 import IIIF, web
+
+    app = Flask(__name__)
+    resolve = lambda rid: 'media/%s' % rid
+
+    @app.route('/<rid>/info.json')
+    def info(identifier):
+        return jsonify(web.info(request.url_root, resolve(rid)))
+
+    @app.route('/<rid>/<region>/<size>/<rotation>/<quality>.<fmt>')
+    def iiif(rid, *args):
+        return IIIF.render(resolver(rid), *web.Parse.params(rid, *args))
+
+    if __name__ == "__main__":
+        app.run()

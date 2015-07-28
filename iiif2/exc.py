@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*-coding: utf-8 -*-
+
+"""
+    exc.py
+    ~~~~~~
+    Exceptions for IIIF Image 2.0 Library
+
+    :copyright: (c) 2015 by Authors
+    :license: see LICENSE for more details.
+"""
 
 
 class IIIF2Error(Exception):
@@ -12,6 +23,11 @@ class RegionArgumentError(IIIF2Error):
 
 class SizeArgumentError(IIIF2Error):
     """Raised when incorrect arguments supplies for Size"""
+    pass
+
+
+class RotationArgumentError(IIIF2Error):
+    """Raised when invalid degrees specified"""
     pass
 
 

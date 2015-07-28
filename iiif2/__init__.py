@@ -1,10 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
-    __init__.py
-    ~~~~~~~~~~~
-    Package initialization for the iiif2 library.
+    iiif2
+    ~~~~~
+    An Image Processing Library for the IIIF Image API 2.0
+    Specification.
 
     :copyright: (c) 2015 by Authors
     :license: see LICENSE for more details.
@@ -17,3 +17,4 @@ __author__ = [
     ]
 
 from .iiif import IIIF  # NOQA
+from .web import Parse  # NOQA

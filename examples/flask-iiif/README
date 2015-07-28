@@ -1,0 +1,4 @@
+What is flask-iiif?
+
+flask-iiif is a minimal IIIF Image 2.0 Web Server built using the
+Python Flask microframework.

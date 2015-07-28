@@ -1,1 +1,6 @@
+v0.0.2, Tue Jul 28 02:37:00 2015
+- Adding parser
+- Adding flask-iiif example
+- Initial image processing pipeline
+
 v0.0.1, Sun Jul 26 20:54:26 2015 -- Initial Release.
