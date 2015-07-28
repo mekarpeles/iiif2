@@ -60,26 +60,26 @@ class IIIF(object):
                 cls.colorize(
                     cls.rotate(
                         cls.scale(
-                            cls.crop(im, region),
+                            cls.crop(im, **region),
                             **size),
                         **rotation),
                     **quality),
                 **fmt)
 
     @staticmethod
-    def maximize(topleft, topright, lowleft, lowright, w, h):
-        """Maximizes the dimensions of the four coordinates
-        of a box, given a max w and h, or returns False if box values are
-        impossible.
+    def maximize(left, top, right, bottom, width, height):
+        """Maximizes the dimensions of the four coordinates of a box
+        (relative to its center) within a max width and height, or
+        returns False if box values are impossible.
         """
-        if lowleft < topleft or lowright < topright:
+        if right < left or bottom < top:
             raise exc.RegionArgumentError("Invalid region coordinates")
 
-        topleft = 0 if topleft < 0 else w if topleft > w else topleft
-        lowleft = 0 if lowleft < 0 else w if lowleft > w else lowleft
-        topright = 0 if topright < 0 else h if topright > h else topright
-        lowright = 0 if lowright < 0 else h if lowright > h else lowright
-        return (topleft, topright, lowleft, lowright)
+        left = 0 if left < 0 else width if left > width else left
+        right = 0 if right < 0 else width if right > width else right
+        top = 0 if top < 0 else height if top > height else top
+        bottom = 0 if bottom < 0 else height if bottom > height else bottom
+        return (left, top, right, bottom)
 
     @classmethod
     def crop(cls, im, full=False, x=None, y=None, w=None, h=None,
@@ -95,8 +95,12 @@ class IIIF(object):
                int(round(y/100 * ih)),
                int(round(x/100 * ih)) + int(round(w/100 * iw)),
                int(round(y/100 * ih)) + int(round(h/100 * ih))
-               ) if percent else (x, y, w, h)
-        return im.crop(*cls.maximize(*box, w=iw, h=ih))
+               ) if percent else (int(x),
+                                  int(y),
+                                  int(x) + int(w),
+                                  int(y) + int(h))
+
+        return im.crop(cls.maximize(*box, width=iw, height=ih))
 
     @staticmethod
     def scale(im, full=False, w=None, h=None, percent=None):
@@ -193,7 +197,7 @@ class Tile(BytesIO):
 
     def save(self, path, ext=False):
         """Can be used by caching to save this in-memory Tile file
-        (StringIO buffer) to disk
+        (BytesIO buffer) to disk
         """
         filename = '%s.%s' % (path, self.ext) if ext else path
         with open(filename, 'w') as f:
@@ -210,4 +214,5 @@ class Tile(BytesIO):
         return self
 
     def __enter__(self):
+        self.seek(0)
         return self

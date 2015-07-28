@@ -17,14 +17,10 @@ from PIL import Image
 from iiif2 import IIIF
 from iiif2 import Parse
 
-# Expected Tile dimensions
-WIDTH = 1000
-HEIGHT = 1095
-
 # IIIF Params
-IDENTIFIER = 'ff139pd0160%252FK90113-43'
+IDENTIFIER = 'example'
 REGION = {'x': 1400, 'y': 1200, 'w': 2500, 'h': 1075}
-SIZE = {'w': WIDTH, 'h': ''}
+SIZE = {'w': 1000, 'h': ''}
 ROTATION = 0
 QUALITY = 'default'
 FORMAT = 'jpg'
@@ -55,8 +51,8 @@ TEST_IMG_DIR = os.path.abspath(
         os.pardir, 'examples', 'flask-iiif', 'images'
         )
     )
-TEST_IMG_PATH = os.path.join(TEST_IMG_DIR, IDENTIFIER + '.jpg')
-EXPECTED_MIME = "image/jpeg"
+TEST_IMG_PATH = os.path.join(TEST_IMG_DIR, '%s.%s' % (IDENTIFIER, FORMAT))
+EXPECTED_HEIGHT = 430
 
 
 class TestIIIF(unittest.TestCase):
@@ -73,9 +69,10 @@ class TestIIIF(unittest.TestCase):
                 self.assertTrue(t1.contents() == t2.contents(),
                                 "Parsing uri behaving differently "
                                 "than PARAMS")
+
                 im = Image.open(t1)
-                self.assertTrue(im.size == (WIDTH, HEIGHT),
+                self.assertTrue(im.size == (1000, EXPECTED_HEIGHT),
                                 "Tile is the wrong dimensions: "
                                 "Expected %s got %s."
-                                % ((WIDTH, HEIGHT), im.size))
+                                % ((1000, EXPECTED_HEIGHT), im.size))
                 im.close()

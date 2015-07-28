@@ -12,8 +12,8 @@ def info(identifier):
 
 
 @app.route('/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
-def iiif(*args):
-    params = web.Parse.params(*args)
+def iiif(**kwargs):
+    params = web.Parse.params(**kwargs)
     path = resolve(params.get('identifier'))
     with IIIF.render(path, **params) as tile:
         return send_file(tile, mimetype=tile.mime)
@@ -23,8 +23,8 @@ def resolve(identifier):
     """Resolves a iiif identifier to the resource's path on disk.
     This method is specific to this server's architecture.
     """
-    return os.path.join(PATH, 'images', identifier)
+    return os.path.join(PATH, 'images', '%s.jpg' % identifier)
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

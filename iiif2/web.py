@@ -28,7 +28,7 @@ def urihash(uri):
     return hashlib.md5(uri.encode('utf-8')).hexdigest()
 
 
-def info(cls, uri, identifier, context=None, profile=None, tiles=None):
+def info(uri, identifier, context=None, profile=None, tiles=None):
     width, height = Image.open(uri).size
     return {
         '@id': '%s/%s' % (uri, identifier),
