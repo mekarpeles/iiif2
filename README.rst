@@ -70,23 +70,38 @@ Use a custom resolver function in place of path:
 Example Web Service
 -------------------
 
-An entire IIIF Web Service written in Flask in < 15 lines of code:
+An entire IIIF Web Service written in Flask in ~30 lines of code is
+provided in the examples/ folder.
 
 .. code:: python
 
-    from flask import Flask, request, jsonify
+    import os.path
+    from flask import Flask, request, jsonify, send_file
     from iiif2 import IIIF, web
 
+    PATH = os.path.dirname(os.path.realpath(__file__))
     app = Flask(__name__)
-    resolve = lambda rid: 'media/%s' % rid
 
-    @app.route('/<rid>/info.json')
+
+    @app.route('/<identifier>/info.json')
     def info(identifier):
-        return jsonify(web.info(request.url_root, resolve(rid)))
+	  return jsonify(web.info(request.url_root, identifier))
 
-    @app.route('/<rid>/<region>/<size>/<rotation>/<quality>.<fmt>')
-    def iiif(rid, *args):
-        return IIIF.render(resolver(rid), *web.Parse.params(rid, *args))
+
+    @app.route('/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
+    def iiif(**kwargs):
+	params = web.Parse.params(**kwargs)
+	path = resolve(params.get('identifier'))
+	with IIIF.render(path, **params) as tile:
+            return send_file(tile, mimetype=tile.mime)
+
+
+    def resolve(identifier):
+        """Resolves a iiif identifier to the resource's path on disk.
+        This method is specific to this server's architecture.
+        """
+        return os.path.join(PATH, 'images', '%s.jpg' % identifier)
+
 
     if __name__ == "__main__":
-        app.run()
+        app.run(debug=True)

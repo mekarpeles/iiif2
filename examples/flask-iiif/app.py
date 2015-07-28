@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 @app.route('/<identifier>/info.json')
 def info(identifier):
-    return jsonify(web.info(request.url_root, identifier))
+    return jsonify(web.info(request.url, resolve(identifier), identifier))
 
 
 @app.route('/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')

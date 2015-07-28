@@ -28,10 +28,10 @@ def urihash(uri):
     return hashlib.md5(uri.encode('utf-8')).hexdigest()
 
 
-def info(uri, identifier, context=None, profile=None, tiles=None):
-    width, height = Image.open(uri).size
+def info(uri, path, context=None, profile=None, tiles=None):
+    width, height = Image.open(path).size
     return {
-        '@id': '%s/%s' % (uri, identifier),
+        '@id': uri,
         '@context': context or 'http://iiif.io/api/image/2/context.json',
         'protocol': 'http://iiif.io/api/image',
         'width': width, 'height': height,
