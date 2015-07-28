@@ -42,7 +42,7 @@ setup(
     long_description=read('README.rst'),
     classifiers=[
         "Development Status :: 3 - Alpha",
-        "Environment :: Web Environment"
+        "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
@@ -50,7 +50,7 @@ setup(
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Topic :: Internet :: WWW/HTTP",
-        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Software Development :: Libraries :: Python Modules"
     ],
     author='mek',
     author_email='michael.karpeles@gmail.com',
