@@ -185,6 +185,7 @@ class IIIF(object):
                 VALID_FILE_FMTS.keys())
         tile = Tile(ext=ext, mime=VALID_FILE_FMTS[ext]['mime'])
         im.save(tile, VALID_FILE_FMTS[ext]['im'])
+        tile.seek(0)
         return tile
 
 
@@ -202,6 +203,7 @@ class Tile(BytesIO):
         filename = '%s.%s' % (path, self.ext) if ext else path
         with open(filename, 'w') as f:
             copyfileobj(self, f)
+        self.seek(0)  # zero pos in bytestream
 
     def contents(self):
         return self.getvalue()
