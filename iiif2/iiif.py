@@ -201,7 +201,7 @@ class Tile(BytesIO):
         (BytesIO buffer) to disk
         """
         filename = '%s.%s' % (path, self.ext) if ext else path
-        with open(filename, 'w') as f:
+        with open(filename, 'wb') as f:
             copyfileobj(self, f)
         self.seek(0)  # zero pos in bytestream
 

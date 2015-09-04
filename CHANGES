@@ -1,3 +1,7 @@
+v0.0.32, Fri Sept 04 15:35:00 2015
+- fixing tile saving for py3.4
+- fixing info.json width height
+
 v0.0.3, Tue Jul 28 07:32:00 2015
 - Fixing web.info info.json generator
 - Updating documentation
