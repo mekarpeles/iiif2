@@ -1,3 +1,7 @@
+v0.0.33, Mon Sept 21 22:31:00 2015
+- fixed tiff support (if mode is "I;16")
+  see: http://stackoverflow.com/a/8134764
+
 v0.0.32, Fri Sept 04 15:35:00 2015
 - fixing tile saving for py3.4
 - fixing info.json width height
