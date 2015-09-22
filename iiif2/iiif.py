@@ -170,8 +170,13 @@ class IIIF(object):
             im = im.convert(VALID_COLOR_MODES[mode])
 
         # Unsharp Mask to increase local contrast in the image
-        im = im.filter(
-            ImageFilter.UnsharpMask(radius=1.2, percent=80, threshold=3)
+        try:
+            im = im.filter(
+                ImageFilter.UnsharpMask(radius=1.2, percent=80, threshold=3)
+            )
+        except ValueError:  # http://stackoverflow.com/a/8134764
+            im = im.convert(VALID_COLOR_MODES['color']).filter(
+                ImageFilter.UnsharpMask(radius=1.2, percent=80, threshold=3)
             )
         return im
 

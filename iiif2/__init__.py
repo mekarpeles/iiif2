@@ -11,7 +11,7 @@
 """
 
 __title__ = 'iiif2'
-__version__ = '0.0.32'
+__version__ = '0.0.33'
 __author__ = [
     'Mek <michael.karpeles@gmail.com>'
     ]
